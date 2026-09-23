@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The notes CLI</title>
+<meta name="description" content="notes: a small terminal tool for daily notes and to-dos, stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
+<meta property="og:title" content="The notes CLI">
+<meta property="og:description" content="notes: a small terminal tool for daily notes and to-dos, stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://toolbox.tobiasdossinger.com/">
+<meta property="og:image" content="https://toolbox.tobiasdossinger.com/notes-ai-demo.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232440D0'/%3E%3Cpath d='M9 16.5l4.5 4.5L23 11.5' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Martian+Mono:wdth,wght@75..112.5,300..700&display=swap">
+<style>
+  :root {
+    --paper: #F3F5F8;
+    --sheet: #FFFFFF;
+    --ink: #141C28;
+    --muted: #586476;
+    --faint: #8A95A6;
+    --rule: #D6DDE6;
+    --pen: #2440D0;
+    --pen-soft: #E3E8FB;
+    --marker: #FFE14D;
+    --marker-ink: #141C28;
+    --urgent: #C8322B;
+    --normal: #B7791F;
+    --code-bg: #E9EDF3;
+    --term: #0F141C;
+    --term-ink: #D8DEE8;
+
+    --mono: "Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --step--1: 0.8125rem;
+    --step-0: 1.0625rem;
+    --step-1: 1.3rem;
+    --step-2: 1.75rem;
+    --step-3: clamp(2rem, 1.2rem + 3.6vw, 3.4rem);
+    --measure: 64ch;
+    --gutter: clamp(16px, 4vw, 40px);
+    --hang: 3.2rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #0F141C;
+      --sheet: #161D28;
+      --ink: #E4E9F1;
+      --muted: #9AA6B8;
+      --faint: #6B7789;
+      --rule: #263142;
+      --pen: #8FA2FF;
+      --pen-soft: #1C2644;
+      --marker: #E9C938;
+      --marker-ink: #10151D;
+      --urgent: #FF7A70;
+      --normal: #E5B454;
+      --code-bg: #1B2330;
+      --term: #0A0E14;
+      --term-ink: #D8DEE8;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0F141C;
+    --sheet: #161D28;
+    --ink: #E4E9F1;
+    --muted: #9AA6B8;
+    --faint: #6B7789;
+    --rule: #263142;
+    --pen: #8FA2FF;
+    --pen-soft: #1C2644;
+    --marker: #E9C938;
+    --marker-ink: #10151D;
+    --urgent: #FF7A70;
+    --normal: #E5B454;
+    --code-bg: #1B2330;
+    --term: #0A0E14;
+    --term-ink: #D8DEE8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding-inline: var(--gutter);
+    padding-block: clamp(28px, 6vw, 64px) 48px;
+    display: grid;
+    gap: clamp(56px, 9vw, 104px);
+  }
+  a { color: var(--pen); text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
+  p { margin: 0; max-width: var(--measure); }
+  code, kbd {
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.84em;
+    background: var(--code-bg);
+    padding: 0.08em 0.36em;
+    border-radius: 4px;
+  }
+
+  /* ---------- masthead ---------- */
+  .mast {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 24px;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: var(--step--1);
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 14px;
+  }
+  .mast b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 64px);
+    align-items: start;
+  }
+  .hero h1 {
+    margin: 0 0 24px;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 100;
+    font-weight: 500;
+    font-size: var(--step-3);
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .hero h1 .dash { color: var(--faint); font-weight: 300; }
+  .tick {
+    font: inherit;
+    color: var(--pen);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tick:hover { color: var(--ink); }
+  .hero h1 .said {
+    background-image: linear-gradient(var(--marker), var(--marker));
+    background-repeat: no-repeat;
+    background-position: 0 62%;
+    background-size: 0% 38%;
+    transition: background-size 520ms cubic-bezier(.3,.7,.2,1);
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  .hero h1.done .said { background-size: 100% 38%; }
+  .lede { font-size: var(--step-1); line-height: 1.5; color: var(--ink); margin-bottom: 28px; }
+  .lede em { font-style: normal; font-weight: 600; }
+
+  .cmd {
+    display: flex;
+    align-items: stretch;
+    max-width: 100%;
+    border: 1px solid var(--rule);
+    background: var(--sheet);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cmd pre {
+    margin: 0;
+    padding: 12px 14px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+  .cmd pre .p { color: var(--faint); user-select: none; }
+  .cmd pre .c { color: var(--faint); }
+  .copy {
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: var(--step--1);
+    border: 0;
+    border-left: 1px solid var(--rule);
+    background: transparent;
+    color: var(--pen);
+    padding: 0 14px;
+    cursor: pointer;
+    flex: none;
+  }
+  .copy:hover { background: var(--pen-soft); }
+  .fine { margin-top: 12px; font-size: var(--step--1); color: var(--muted); }
+
+  /* the note file preview */
+  .file {
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    box-shadow: 0 1px 0 var(--rule), 0 18px 40px -24px rgba(20, 28, 40, 0.35);
+    overflow: hidden;
+  }
+  .file-tab {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 80;
+    font-size: 0.72rem;
+    color: var(--muted);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .file pre {
+    margin: 0;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 80;
+    font-size: 0.8rem;
+    line-height: 1.75;
+    color: var(--ink);
+  }
+  .file .fm { color: var(--faint); }
+  .file .h { color: var(--pen); font-weight: 600; }
+  .file .x { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--faint); }
+  .file .mv { color: var(--faint); }
+  .file-cap { font-size: var(--step--1); color: var(--muted); padding: 0 16px 14px; margin: 0; }
+
+  /* ---------- sections as note headings ---------- */
+  section { display: grid; gap: 24px; }
+  .sec-head { display: grid; gap: 10px; }
+  h2 {
+    margin: 0;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 100;
+    font-weight: 600;
+    font-size: var(--step-2);
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    position: relative;
+  }
+  h2::before {
+    content: "##";
+    color: var(--faint);
+    font-weight: 300;
+    margin-right: 0.5em;
+  }
+  @media (min-width: 1160px) {
+    h2::before { position: absolute; right: 100%; margin-right: 0.6em; }
+  }
+  .sec-head p { color: var(--muted); }
+
+  /* ---------- onboarding checklist ---------- */
+  .progress {
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: var(--step--1);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .bar { width: 140px; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--pen); transition: width 300ms ease; }
+  .reset {
+    font: inherit; color: var(--pen); background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--rule); }
+  .step {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 4px 12px;
+    padding: 22px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .step input {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 4px 0 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid var(--faint);
+    border-radius: 5px;
+    background: var(--sheet);
+    cursor: pointer;
+    display: grid;
+    place-content: center;
+    transition: background 150ms ease, border-color 150ms ease;
+  }
+  .step input::after {
+    content: "";
+    width: 0.8rem;
+    height: 0.45rem;
+    border-left: 2.5px solid var(--sheet);
+    border-bottom: 2.5px solid var(--sheet);
+    transform: translateY(-2px) rotate(-45deg) scale(0);
+    transition: transform 160ms ease;
+  }
+  .step input:checked { background: var(--pen); border-color: var(--pen); }
+  .step input:checked::after { transform: translateY(-2px) rotate(-45deg) scale(1); }
+  .step-body { display: grid; gap: 10px; min-width: 0; }
+  .step label { font-weight: 700; font-size: var(--step-1); line-height: 1.35; cursor: pointer; }
+  .step input:checked ~ .step-body label { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
+  .step-body p { color: var(--ink); }
+  .step-body .note { color: var(--muted); font-size: 0.95rem; }
+  .step .cmd { max-width: 640px; }
+
+  /* ---------- how a day works ---------- */
+  .mechanics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 32px 40px;
+  }
+  .mech { display: grid; gap: 8px; align-content: start; }
+  .mech h3 {
+    margin: 0;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .mech h3 .glyph { color: var(--pen); font-weight: 500; }
+  .mech p { color: var(--muted); font-size: 0.98rem; }
+
+  /* ---------- AI sorting ---------- */
+  .ai {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 64px);
+    align-items: start;
+  }
+  .ai-copy { display: grid; gap: 20px; }
+  .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-family: var(--mono); font-variation-settings: "wdth" 85; font-size: 0.86rem; }
+  .legend li { display: flex; gap: 10px; align-items: baseline; }
+  .legend .b1 { color: var(--urgent); }
+  .legend .b2 { color: var(--normal); }
+  .legend .b3 { color: var(--faint); }
+  .legend .t1 { font-weight: 700; }
+  .legend .t3 { color: var(--faint); }
+  .legend small { font-family: var(--sans); color: var(--muted); font-size: 0.85rem; }
+  .term {
+    background: var(--term);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 30px 60px -30px rgba(10, 14, 20, 0.55);
+    border: 1px solid var(--rule);
+  }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; }
+  .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2A3342; }
+  .term-bar span { margin-left: 8px; font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.7rem; color: #7D889A; }
+  .term img { display: block; width: 100%; height: auto; }
+  .term figcaption { font-size: var(--step--1); color: #9AA6B8; padding: 10px 14px 12px; border-top: 1px solid #1E2633; }
+
+  /* ---------- limits table ---------- */
+  .guard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: clamp(28px, 5vw, 64px);
+    align-items: start;
+  }
+  .guard ul { margin: 0; padding-left: 1.2em; display: grid; gap: 10px; max-width: var(--measure); }
+  .guard li::marker { color: var(--pen); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { font-family: var(--mono); font-variation-settings: "wdth" 85; font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  td.k { font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.8rem; white-space: nowrap; }
+  td.v { font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.8rem; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--pen); }
+
+  /* ---------- cheat sheet ---------- */
+  .sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 32px 40px; }
+  .sheet h3 { margin: 0 0 10px; font-size: 0.78rem; font-family: var(--mono); font-variation-settings: "wdth" 85; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .sheet dl { margin: 0; display: grid; gap: 0; border-top: 1px solid var(--rule); }
+  .sheet dl div { display: grid; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+  .sheet dt { font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.82rem; color: var(--ink); overflow-wrap: anywhere; }
+  .sheet dd { margin: 0; color: var(--muted); font-size: 0.93rem; }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    font-size: var(--step--1);
+    color: var(--muted);
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    transform: translate(-50%, 12px);
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: var(--step--1);
+    padding: 8px 14px;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease, transform 160ms ease;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 820px) {
+    .hero, .ai, .guard { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="mast">
+    <span><b>notes</b> · part of toolbox</span>
+    <span>Python 3 · no dependencies · plain Markdown</span>
+  </header>
+
+  <!-- hero -->
+  <div class="hero">
+    <div>
+      <h1 id="hero-line"><span class="dash">-</span> <button class="tick" id="hero-tick" type="button" aria-pressed="false" aria-label="Check off this line">[ ]</button> <span class="said">Write it down. Find it later.</span></h1>
+      <p class="lede"><code>notes</code> is a small terminal tool for daily notes and to-dos. Every note is a <em>plain Markdown file you own</em>. Open to-dos follow you from day to day, and when the list gets long, Claude can sort it for you.</p>
+      <div class="cmd">
+        <pre><span class="p">$ </span>notes todo "renew passport" "call dentist"</pre>
+        <button class="copy" type="button" data-copy='notes todo "renew passport" "call dentist"'>Copy</button>
+      </div>
+      <p class="fine">That's the whole workflow for adding to-dos. No app, no account, no sync service required.</p>
+    </div>
+
+    <figure class="file" style="margin:0">
+      <div class="file-tab"><span>notes/2026-09-23-daily.md</span><span>Markdown</span></div>
+<pre><span class="fm">---
+title: Daily 2026-09-23
+date: 2026-09-23
+tags: [daily]
+---</span>
+
+<span class="h">## Work</span>
+
+- [ ] fix checkout crash on Safari
+- [ ] prepare slides for Friday's demo
+<span class="x">- [x] review Maria's PR</span>
+
+<span class="h">## Personal</span>
+
+- [ ] renew passport
+- [ ] call dentist
+- [ ] pay rent</pre>
+      <figcaption class="file-cap">What <code>notes</code> writes to disk: a regular Markdown file. Open it in any editor, grep it, or sync it with iCloud.</figcaption>
+    </figure>
+  </div>
+
+  <!-- onboarding -->
+  <section aria-labelledby="setup-title">
+    <div class="sec-head">
+      <h2 id="setup-title">Get set up</h2>
+      <p>Six steps, about five minutes. Tick each one off as you go; your progress is saved in this browser.</p>
+      <div class="progress" aria-live="polite">
+        <div class="bar" aria-hidden="true"><i id="bar-fill"></i></div>
+        <span id="progress-text">0 of 6 done</span>
+        <button class="reset" id="reset" type="button" hidden>Start over</button>
+      </div>
+    </div>
+
+    <ol class="steps">
+      <li class="step">
+        <input type="checkbox" id="step-clone">
+        <div class="step-body">
+          <label for="step-clone">Get the code</label>
+          <div class="cmd">
+            <pre>git clone git@github.com:tobiasdossinger/toolbox.git
+cd toolbox</pre>
+            <button class="copy" type="button" data-copy="git clone git@github.com:tobiasdossinger/toolbox.git&#10;cd toolbox">Copy</button>
+          </div>
+          <p class="note">The repo is private. Ask Tobias for access. If you don't have a GitHub account, a read-only token works instead; the toolbox README has the steps.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-install">
+        <div class="step-body">
+          <label for="step-install">Run the installer</label>
+          <div class="cmd">
+            <pre>./install.sh notes</pre>
+            <button class="copy" type="button" data-copy="./install.sh notes">Copy</button>
+          </div>
+          <p>It links <code>notes</code> into <code>~/.local/bin</code> and asks a few questions:</p>
+          <p class="note"><b>Sync with iCloud Drive?</b> Say yes to share notes across your Macs. <b>What's this notebook for?</b> Work only, Personal only, or Both. <b>Show open to-dos in every new terminal?</b> Say yes for a reminder each time you open one. You can change all of these later.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-todo">
+        <div class="step-body">
+          <label for="step-todo">Add your first to-dos</label>
+          <div class="cmd">
+            <pre>notes todo "buy milk" "call mom"
+notes todo "reply to client email" --work</pre>
+            <button class="copy" type="button" data-copy='notes todo "buy milk" "call mom"&#10;notes todo "reply to client email" --work'>Copy</button>
+          </div>
+          <p class="note">Quote each item. <code>notes todo buy milk</code> would add two items, "buy" and "milk".</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-list">
+        <div class="step-body">
+          <label for="step-list">See everything that's open</label>
+          <div class="cmd">
+            <pre>notes todos</pre>
+            <button class="copy" type="button" data-copy="notes todos">Copy</button>
+          </div>
+          <p class="note">This collects open items from every note, grouped by Work and Personal. Add <code>--work</code> or <code>--personal</code> to filter.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-done">
+        <div class="step-body">
+          <label for="step-done">Check something off</label>
+          <div class="cmd">
+            <pre>notes done milk      <span class="c"># typo-tolerant match</span>
+notes check          <span class="c"># interactive checklist</span></pre>
+            <button class="copy" type="button" data-copy="notes done milk">Copy</button>
+          </div>
+          <p class="note">Checked off the wrong one? <code>notes undone milk</code> reopens it.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-ai">
+        <div class="step-body">
+          <label for="step-ai">Let Claude sort the list</label>
+          <div class="cmd">
+            <pre>notes todos --ai</pre>
+            <button class="copy" type="button" data-copy="notes todos --ai">Copy</button>
+          </div>
+          <p class="note">Needs <a href="https://claude.com/claude-code">Claude Code</a> installed and logged in. The first run takes a few seconds, and after that it's instant. More on this below.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- how a day works -->
+  <section aria-labelledby="day-title">
+    <div class="sec-head">
+      <h2 id="day-title">How your notes stay organized</h2>
+      <p>These all run on their own; there's nothing to set up.</p>
+    </div>
+    <div class="mechanics">
+      <div class="mech">
+        <h3><span class="glyph">[&gt;]</span> Open items follow you</h3>
+        <p>The first time you use <code>notes</code> each day, it moves yesterday's open to-dos into today's note and marks the old ones <code>- [&gt;]</code>, so nothing gets left behind.</p>
+      </div>
+      <div class="mech">
+        <h3><span class="glyph">##</span> Work and Personal</h3>
+        <p>With "Both", every day gets a Personal section and weekdays also get a Work section. Weekends stay personal.</p>
+      </div>
+      <div class="mech">
+        <h3><span class="glyph">$</span> A reminder in every terminal</h3>
+        <p>If you said yes during install, each new terminal opens with a short list of what's still open. It shows your standup summary instead if the <code>standup</code> tool is installed.</p>
+      </div>
+      <div class="mech">
+        <h3><span class="glyph">~</span> Typo-tolerant search</h3>
+        <p><code>notes search</code>, <code>notes edit</code> and <code>notes done</code> all find close matches, so "dentst" still finds "call dentist".</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI sorting -->
+  <section aria-labelledby="ai-title">
+    <div class="sec-head">
+      <h2 id="ai-title">When the list gets long, let Claude sort it</h2>
+    </div>
+    <div class="ai">
+      <div class="ai-copy">
+        <p>Add <code>--ai</code> to <code>notes todos</code> or <code>notes check</code>. Claude files each open item under a topic like Finance, Health or Meetings, rates how urgent it is, and puts the most urgent items at the top of each group.</p>
+        <ul class="legend" aria-label="Priority legend">
+          <li><span class="b1">☐</span><span class="t1">file tax return, deadline next week</span><small>urgent</small></li>
+          <li><span class="b2">☐</span><span>buy groceries for the weekend</span><small>normal</small></li>
+          <li><span class="b3">☐</span><span class="t3">someday: learn Spanish</span><small>low</small></li>
+        </ul>
+        <p><b>Your files never change.</b> Sorting only affects what you see, so <code>done</code>, carry-forward and everything else work exactly as before.</p>
+        <p>Results are saved per item, so only new to-dos trigger a call. Want a fresh sort? Run <code>notes todos --ai --refresh</code>. There's also Markdown output for sharing: <code>notes todos --ai --md</code>.</p>
+      </div>
+      <figure class="term" style="margin:0">
+        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>notes · demo notebook</span></div>
+        <picture>
+          <source srcset="notes-ai-demo.png" media="(prefers-reduced-motion: reduce)">
+          <img src="notes-ai-demo.gif" width="983" height="1277" alt="Terminal recording: notes todos lists 30 to-dos grouped only by Work and Personal; notes todos --ai regroups them into Finance, Health, Household, Meetings, Technical, Travel, Planning and Learning with urgent items first; a new to-do is categorized with one small call; notes check --ai shows the grouped checklist; notes ai shows the usage report.">
+        </picture>
+        <figcaption>A real recording on a demo notebook with 30 to-dos. The wait for Claude is shortened to about a second.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- cost guard -->
+  <section aria-labelledby="cost-title">
+    <div class="sec-head">
+      <h2 id="cost-title">No surprise bills</h2>
+      <p>AI sorting runs through your Claude subscription, so there's no API key to manage and nothing billed per call.</p>
+    </div>
+    <div class="guard">
+      <ul>
+        <li><b>Subscription only.</b> <code>notes</code> won't call Claude unless Claude Code is logged in with a Claude plan. It also ignores any API key set in your shell, so a leftover key can't turn into a bill.</li>
+        <li><b>Hard limits.</b> Before every call, <code>notes</code> checks a daily call limit and a monthly budget. When either runs out, you get the regular list and a note saying why.</li>
+        <li><b>Every call is logged.</b> Run <code>notes ai</code> to see today's calls, this month's estimated usage and the latest calls. A sort of about 30 to-dos is estimated at roughly $0.03 at API prices, which counts toward your plan's usage limits rather than being charged.</li>
+      </ul>
+      <div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it limits</th></tr></thead>
+            <tbody>
+              <tr><td class="k">daily_calls</td><td class="v">20</td><td>Calls to Claude per day. Set it to 0 to turn AI sorting off.</td></tr>
+              <tr><td class="k">monthly_budget_usd</td><td class="v">$2.00</td><td>Estimated usage per calendar month</td></tr>
+              <tr><td class="k">max_usd_per_call</td><td class="v">$0.10</td><td>Cap passed to each call</td></tr>
+              <tr><td class="k">batch_size</td><td class="v">40</td><td>To-dos sent per call</td></tr>
+              <tr><td class="k">allow_api_billing</td><td class="v">false</td><td>Whether an API key may be used</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="cmd" style="margin-top:14px">
+          <pre>notes ai --set daily_calls=10 monthly_budget_usd=1</pre>
+          <button class="copy" type="button" data-copy="notes ai --set daily_calls=10 monthly_budget_usd=1">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- cheat sheet -->
+  <section aria-labelledby="sheet-title">
+    <div class="sec-head">
+      <h2 id="sheet-title">Cheat sheet</h2>
+      <p>Run <code>notes -h</code> for this list, or <code>notes &lt;command&gt; -h</code> for details on one command.</p>
+    </div>
+    <div class="sheet">
+      <div>
+        <h3>To-dos</h3>
+        <dl>
+          <div><dt>notes todo "text" [--work]</dt><dd>Add one or more to-dos to today's note</dd></div>
+          <div><dt>notes todos [--ai] [--md]</dt><dd>List everything open, across all notes</dd></div>
+          <div><dt>notes done &lt;text&gt;</dt><dd>Check off the closest match</dd></div>
+          <div><dt>notes undone &lt;text&gt;</dt><dd>Reopen a checked-off item</dd></div>
+          <div><dt>notes check [--ai]</dt><dd>Tick items off in an interactive list</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h3>Notes</h3>
+        <dl>
+          <div><dt>notes today</dt><dd>Open today's daily note in your editor</dd></div>
+          <div><dt>notes new "Title"</dt><dd>Start a new note</dd></div>
+          <div><dt>notes search &lt;text&gt;</dt><dd>Search titles and contents</dd></div>
+          <div><dt>notes edit &lt;text&gt;</dt><dd>Open the note that matches best</dd></div>
+          <div><dt>notes list · notes tags</dt><dd>Browse recent notes and the tags you use</dd></div>
+        </dl>
+      </div>
+      <div>
+        <h3>Setup</h3>
+        <dl>
+          <div><dt>notes init</dt><dd>Change what the notebook is for: Work, Personal or Both</dd></div>
+          <div><dt>notes editor "code -w"</dt><dd>Choose your editor. The default is nano (save with Ctrl+O, quit with Ctrl+X).</dd></div>
+          <div><dt>notes ai</dt><dd>AI usage and limits</dd></div>
+          <div><dt>NOTES_DIR=…</dt><dd>Keep your notes in a different folder</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Part of <b>toolbox</b>, a set of personal CLI tools. Full docs: <code>tools/notes/README.md</code></span>
+    <span>Your notes are plain text and stay on your machine.</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var KEY = "notes-onboarding-steps";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll(".step input[type=checkbox]"));
+  var fill = document.getElementById("bar-fill");
+  var text = document.getElementById("progress-text");
+  var reset = document.getElementById("reset");
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { return {}; }
+  }
+  function save() {
+    var state = {};
+    boxes.forEach(function (b) { state[b.id] = b.checked; });
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function render() {
+    var done = boxes.filter(function (b) { return b.checked; }).length;
+    fill.style.width = (done / boxes.length * 100) + "%";
+    text.textContent = done === boxes.length ? "All " + done + " done. You're set up." : done + " of " + boxes.length + " done";
+    reset.hidden = done === 0;
+  }
+  var saved = load();
+  boxes.forEach(function (b) {
+    b.checked = !!saved[b.id];
+    b.addEventListener("change", function () { save(); render(); });
+  });
+  reset.addEventListener("click", function () {
+    boxes.forEach(function (b) { b.checked = false; });
+    save(); render();
+  });
+  render();
+
+  // hero: the headline is a to-do; check it off
+  var line = document.getElementById("hero-line");
+  var tick = document.getElementById("hero-tick");
+  tick.addEventListener("click", function () {
+    var on = !line.classList.contains("done");
+    line.classList.toggle("done", on);
+    tick.textContent = on ? "[x]" : "[ ]";
+    tick.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+
+  // copy buttons
+  var toast = document.getElementById("toast");
+  var timer;
+  function say(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(timer);
+    timer = setTimeout(function () { toast.classList.remove("show"); }, 1600);
+  }
+  function selectPre(btn) {
+    var pre = btn.parentNode.querySelector("pre");
+    var range = document.createRange();
+    range.selectNodeContents(pre);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+  document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var value = btn.getAttribute("data-copy");
+      var p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(value) : Promise.reject();
+      p.then(function () {
+        btn.textContent = "Copied";
+        say("Copied to clipboard");
+        setTimeout(function () { btn.textContent = "Copy"; }, 1400);
+      }).catch(function () {
+        selectPre(btn);
+        say("Selected. Press ⌘C to copy");
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
