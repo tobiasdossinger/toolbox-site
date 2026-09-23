@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The notes CLI</title>
-<meta name="description" content="notes: a small terminal tool for daily notes and to-dos, stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
+<meta name="description" content="notes and standup: small terminal tools for daily notes, to-dos and your daily standup, all stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
 <meta property="og:title" content="The notes CLI">
-<meta property="og:description" content="notes: a small terminal tool for daily notes and to-dos, stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
+<meta property="og:description" content="notes and standup: small terminal tools for daily notes, to-dos and your daily standup, all stored as plain Markdown. Setup guide, AI sorting with Claude, and cost limits.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://toolbox.tobiasdossinger.com/">
 <meta property="og:image" content="https://toolbox.tobiasdossinger.com/notes-ai-demo.png">
@@ -356,7 +356,7 @@
   .mech p { color: var(--muted); font-size: 0.98rem; }
 
   /* ---------- AI sorting ---------- */
-  .ai {
+  .ai, .split {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: clamp(28px, 5vw, 64px);
@@ -396,6 +396,27 @@
   .gif-toggle:hover { background: #2A3342; }
   .gif-toggle:focus-visible { outline: 2px solid #8FA2FF; outline-offset: 2px; }
   .term img { display: block; width: 100%; height: auto; }
+  .term pre.out {
+    margin: 0;
+    padding: 6px 18px 18px;
+    overflow-x: auto;
+    color: #D8DEE8;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 80;
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+  .out .b { color: #F2F5F9; font-weight: 700; }
+  .out .ok { color: #7EE2A8; }
+  .out .op { color: #E5B454; }
+  .out .w { color: #8FB0FF; font-weight: 700; }
+  .out .pe { color: #D9A2F7; font-weight: 700; }
+  .out .d { color: #9AA6B8; }
+  .standup-points { display: grid; gap: 16px; margin: 0; }
+  .standup-points div { display: grid; gap: 2px; }
+  .standup-points dt { font-weight: 700; }
+  .standup-points dd { margin: 0; color: var(--muted); max-width: var(--measure); }
+  .sheet-col { display: grid; gap: 28px; align-content: start; }
   .term figcaption { font-size: var(--step--1); color: #9AA6B8; padding: 10px 14px 12px; border-top: 1px solid #1E2633; }
 
   /* ---------- limits table ---------- */
@@ -453,7 +474,7 @@
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
   @media (max-width: 820px) {
-    .hero, .ai, .guard { grid-template-columns: minmax(0, 1fr); }
+    .hero, .ai, .split, .guard { grid-template-columns: minmax(0, 1fr); }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; }
@@ -464,7 +485,7 @@
 
 <div class="page">
   <header class="mast">
-    <span><b>notes</b> · part of toolbox</span>
+    <span><b>notes</b> &amp; <b>standup</b> · part of toolbox</span>
     <span>Python 3 · no dependencies · plain Markdown</span>
   </header>
 
@@ -508,10 +529,10 @@ tags: [daily]
   <section aria-labelledby="setup-title">
     <div class="sec-head">
       <h2 id="setup-title">Get set up</h2>
-      <p>Six steps, about five minutes. Tick each one off as you go; your progress is saved in this browser.</p>
+      <p>Seven steps, about five minutes. Tick each one off as you go; your progress is saved in this browser.</p>
       <div class="progress">
         <div class="bar" aria-hidden="true"><i id="bar-fill"></i></div>
-        <span id="progress-text" role="status">0 of 6 done</span>
+        <span id="progress-text" role="status">0 of 7 done</span>
         <button class="reset" id="reset" type="button" hidden>Start over</button>
       </div>
     </div>
@@ -535,10 +556,10 @@ cd toolbox</pre>
         <div class="step-body">
           <label for="step-install">Run the installer</label>
           <div class="cmd">
-            <pre>./install.sh notes</pre>
-            <button class="copy" type="button" data-copy="./install.sh notes">Copy</button>
+            <pre>./install.sh notes standup</pre>
+            <button class="copy" type="button" data-copy="./install.sh notes standup">Copy</button>
           </div>
-          <p>It links <code>notes</code> into <code>~/.local/bin</code> and asks a few questions:</p>
+          <p>It links <code>notes</code> and <code>standup</code> into <code>~/.local/bin</code>, then asks a few questions:</p>
           <p class="note"><b>Sync with iCloud Drive?</b> Say yes to share notes across your Macs. <b>What's this notebook for?</b> Work only, Personal only, or Both. <b>Show open to-dos in every new terminal?</b> Say yes for a reminder each time you open one. You can change all of these later.</p>
         </div>
       </li>
@@ -582,6 +603,18 @@ notes check          <span class="c"># interactive checklist</span></pre>
       </li>
 
       <li class="step">
+        <input type="checkbox" id="step-standup">
+        <div class="step-body">
+          <label for="step-standup">Read your standup</label>
+          <div class="cmd">
+            <pre>standup</pre>
+            <button class="copy" type="button" data-copy="standup">Copy</button>
+          </div>
+          <p class="note">This shows what you checked off last time and everything still open. It gets useful from your second day, once there's a yesterday to report. <a href="#standup">How it works</a></p>
+        </div>
+      </li>
+
+      <li class="step">
         <input type="checkbox" id="step-ai">
         <div class="step-body">
           <label for="step-ai">Let Claude sort the list</label>
@@ -618,6 +651,47 @@ notes check          <span class="c"># interactive checklist</span></pre>
         <h3><span class="glyph">~</span> Typo-tolerant search</h3>
         <p><code>notes search</code>, <code>notes edit</code> and <code>notes done</code> all find close matches, so "dentst" still finds "call dentist".</p>
       </div>
+    </div>
+  </section>
+
+  <!-- standup -->
+  <section aria-labelledby="standup-title" id="standup">
+    <div class="sec-head">
+      <h2 id="standup-title">Your standup, already written</h2>
+      <p><code>standup</code> reads the daily notes that <code>notes</code> already keeps. There's nothing extra to track: what you checked off last time becomes your update, and everything still open is today's list.</p>
+    </div>
+    <div class="split">
+      <dl class="standup-points">
+        <div><dt>It knows what "yesterday" means</dt><dd>On a Monday, it reports Friday's work as "Last done (Friday, …)", so the label never claims a day that isn't true. Days without a note are skipped.</dd></div>
+        <div><dt>It takes weekends off</dt><dd>On Saturday and Sunday there's no recap, just your open to-dos.</dd></div>
+        <div><dt>Filter it for the meeting</dt><dd><code>standup --work</code> leaves out your personal items, and <code>--personal</code> does the opposite.</dd></div>
+        <div><dt>It shows up in every new terminal</dt><dd>With the terminal reminder on, <code>notes</code> shows your standup instead of a plain list. Nothing to configure.</dd></div>
+      </dl>
+      <figure class="term" style="margin:0">
+        <div class="term-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span aria-hidden="true">standup · Wednesday</span></div>
+<pre class="out" tabindex="0" role="region" aria-label="Example standup output"><span class="d">$</span> standup
+<span class="b">Standup — 2026-09-23</span>
+
+<span class="b">Yesterday (Tuesday, 2026-09-22)</span>
+<span class="w">Work (3)</span>
+  <span class="ok">✓</span> ship the new onboarding flow
+  <span class="ok">✓</span> review Maria's PR for the payments refactor
+  <span class="ok">✓</span> fix flaky login test in CI
+
+<span class="pe">Personal (1)</span>
+  <span class="ok">✓</span> book dentist appointment
+
+<span class="b">Today — open (5)</span>
+<span class="w">Work (3)</span>
+  <span class="op">☐</span> prepare slides for Friday's sprint demo
+  <span class="op">☐</span> reply to client email about contract renewal
+  <span class="op">☐</span> hotfix expired SSL cert on staging
+
+<span class="pe">Personal (2)</span>
+  <span class="op">☐</span> renew passport
+  <span class="op">☐</span> pay rent</pre>
+        <figcaption>Real output from a demo notebook. The two open items from Tuesday were carried over to today automatically.</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -708,21 +782,30 @@ notes check          <span class="c"># interactive checklist</span></pre>
           <div><dt>notes list · notes tags</dt><dd>Browse recent notes and the tags you use</dd></div>
         </dl>
       </div>
-      <div>
+      <div class="sheet-col">
+        <div>
+        <h3>standup</h3>
+        <dl>
+          <div><dt>standup</dt><dd>Last workday's checked-off items plus everything open</dd></div>
+          <div><dt>standup --work · --personal</dt><dd>Only one section</dd></div>
+        </dl>
+        </div>
+        <div>
         <h3>Setup</h3>
         <dl>
           <div><dt>notes init</dt><dd>Change what the notebook is for: Work, Personal or Both</dd></div>
           <div><dt>notes editor "code -w"</dt><dd>Choose your editor. The default is nano (save with Ctrl+O, quit with Ctrl+X).</dd></div>
           <div><dt>notes ai</dt><dd>AI usage and limits</dd></div>
-          <div><dt>NOTES_DIR=…</dt><dd>Keep your notes in a different folder</dd></div>
+          <div><dt>NOTES_DIR=…</dt><dd>Keep your notes in a different folder. standup reads the same setting.</dd></div>
         </dl>
+        </div>
       </div>
     </div>
   </section>
   </main>
 
   <footer>
-    <span>Part of <b>toolbox</b>, a set of personal CLI tools. Full docs: <code>tools/notes/README.md</code></span>
+    <span>Part of <b>toolbox</b>, a set of personal CLI tools. Full docs: <code>tools/notes/README.md</code> and <code>tools/standup/README.md</code></span>
     <span>Your notes are plain text and stay on your machine.</span>
   </footer>
 </div>
