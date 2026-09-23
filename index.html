@@ -335,6 +335,71 @@
   .step-body .note { color: var(--muted); font-size: 0.95rem; }
   .step .cmd { max-width: 640px; }
 
+  .steps { counter-reset: step; }
+  .step { counter-increment: step; }
+  .step label::before {
+    content: counter(step) ". ";
+    content: counter(step) ". " / "";
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .tag {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 6px;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    border-radius: 99px;
+    padding: 2px 8px;
+  }
+  .step input:checked ~ .step-body label .tag { text-decoration: none; }
+  .check { font-size: 0.95rem; }
+  .check span {
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--pen);
+    margin-right: 6px;
+  }
+  .alts { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; color: var(--muted); font-size: 0.95rem; max-width: var(--measure); }
+  .alts li::marker { color: var(--faint); }
+  .alts code { overflow-wrap: anywhere; }
+  .keep {
+    font-size: 0.95rem;
+    border-left: 3px solid var(--marker);
+    padding-left: 12px;
+  }
+  .asks { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; max-width: var(--measure); }
+  .asks li { display: grid; gap: 2px; padding-left: 14px; border-left: 2px solid var(--rule); }
+  .asks .q { font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.82rem; }
+  .asks .a { color: var(--muted); font-size: 0.95rem; }
+  kbd { border: 1px solid var(--rule); border-bottom-width: 2px; background: var(--sheet); }
+  .trouble {
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 20px clamp(16px, 3vw, 28px);
+    display: grid;
+    gap: 14px;
+  }
+  .trouble h3 { margin: 0; font-family: var(--mono); font-variation-settings: "wdth" 100; font-size: 1.05rem; font-weight: 600; }
+  .trouble dl { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 18px 32px; }
+  .trouble dl div { display: grid; gap: 4px; align-content: start; }
+  .trouble dt { font-weight: 700; }
+  .trouble dd { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .trouble dd code { overflow-wrap: anywhere; }
+
   /* ---------- how a day works ---------- */
   .mechanics {
     display: grid;
@@ -529,25 +594,46 @@ tags: [daily]
   <section aria-labelledby="setup-title">
     <div class="sec-head">
       <h2 id="setup-title">Get set up</h2>
-      <p>Seven steps, about five minutes. Tick each one off as you go; your progress is saved in this browser.</p>
+      <p>Nine short steps, about ten minutes, and the last one is optional. Most steps end with a quick check, so you know it worked before moving on. Tick each one off as you go; your progress is saved in this browser.</p>
       <div class="progress">
         <div class="bar" aria-hidden="true"><i id="bar-fill"></i></div>
-        <span id="progress-text" role="status">0 of 7 done</span>
+        <span id="progress-text" role="status">0 of 9 done</span>
         <button class="reset" id="reset" type="button" hidden>Start over</button>
       </div>
     </div>
 
     <ol class="steps" role="list">
       <li class="step">
+        <input type="checkbox" id="step-prereq">
+        <div class="step-body">
+          <label for="step-prereq">Check you have Git and Python 3</label>
+          <div class="cmd">
+            <pre>git --version
+python3 --version</pre>
+            <button class="copy" type="button" data-copy="git --version&#10;python3 --version">Copy</button>
+          </div>
+          <p class="note">Both come with macOS's developer tools. On a fresh Mac, either command may open a dialog offering to install them: click Install, wait for it to finish, then run the commands again. You'll also need access to the private <code>toolbox</code> repo on GitHub. Ask Tobias for an invite.</p>
+          <p class="check"><span>Check</span> Both commands print a version number, e.g. <code>Python 3.9.6</code>.</p>
+        </div>
+      </li>
+
+      <li class="step">
         <input type="checkbox" id="step-clone">
         <div class="step-body">
-          <label for="step-clone">Get the code</label>
+          <label for="step-clone">Download the toolbox</label>
           <div class="cmd">
-            <pre>git clone git@github.com:tobiasdossinger/toolbox.git
+            <pre>mkdir -p ~/Developer &amp;&amp; cd ~/Developer
+git clone https://github.com/tobiasdossinger/toolbox.git
 cd toolbox</pre>
-            <button class="copy" type="button" data-copy="git clone git@github.com:tobiasdossinger/toolbox.git&#10;cd toolbox">Copy</button>
+            <button class="copy" type="button" data-copy="mkdir -p ~/Developer &amp;&amp; cd ~/Developer&#10;git clone https://github.com/tobiasdossinger/toolbox.git&#10;cd toolbox">Copy</button>
           </div>
-          <p class="note">The repo is private. Ask Tobias for access. If you don't have a GitHub account, a read-only token works instead; the toolbox README has the steps.</p>
+          <p class="note">Git asks for your GitHub username and a password. For the password, paste a <a href="https://github.com/settings/tokens/new?scopes=repo&amp;description=toolbox">classic personal access token with <code>repo</code> access</a>, because GitHub no longer accepts account passwords here. The newer fine-grained tokens don't work for someone else's repo. Other ways to download:</p>
+          <ul class="alts">
+            <li>If you use the GitHub CLI: <code>gh repo clone tobiasdossinger/toolbox</code></li>
+            <li>If you have an SSH key on GitHub: <code>git clone git@github.com:tobiasdossinger/toolbox.git</code></li>
+            <li>If you have no GitHub account: ask Tobias for a read-only download link. The toolbox README explains how he creates one.</li>
+          </ul>
+          <p class="keep"><b>Keep this folder where it is.</b> The tools run straight from it, and unless you turn on iCloud sync in the next step, your notes are stored inside it too. Moving or deleting it breaks the <code>notes</code> command.</p>
         </div>
       </li>
 
@@ -559,8 +645,39 @@ cd toolbox</pre>
             <pre>./install.sh notes standup</pre>
             <button class="copy" type="button" data-copy="./install.sh notes standup">Copy</button>
           </div>
-          <p>It links <code>notes</code> and <code>standup</code> into <code>~/.local/bin</code>, then asks a few questions:</p>
-          <p class="note"><b>Sync with iCloud Drive?</b> Say yes to share notes across your Macs. <b>What's this notebook for?</b> Work only, Personal only, or Both. <b>Show open to-dos in every new terminal?</b> Say yes for a reminder each time you open one. You can change all of these later.</p>
+          <p>It links both tools into <code>~/.local/bin</code>, then asks up to three questions:</p>
+          <ul class="asks" role="list">
+            <li>
+              <p class="q">Sync notes across devices via iCloud Drive?</p>
+              <p class="a"><b>Yes</b> if you use more than one Mac, otherwise no. Only asked on a Mac with iCloud Drive turned on.</p>
+            </li>
+            <li>
+              <p class="q">What do you want to use this notebook for?</p>
+              <p class="a"><b>Both</b> (the default) gives every day a Personal section, plus a Work section on weekdays. Pick Work only or Personal only if that's all you need.</p>
+            </li>
+            <li>
+              <p class="q">Show a reminder of open to-dos every time you open a new terminal?</p>
+              <p class="a"><b>Yes</b> (the default). Each new terminal starts with your standup.</p>
+            </li>
+          </ul>
+          <p class="note">It also shows which editor notes will open. If that's nano, step 6 covers how to save. The installer edits <code>~/.zshrc</code>, the macOS default. If you use bash, copy the lines it prints into <code>~/.bashrc</code> instead.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <input type="checkbox" id="step-newterm">
+        <div class="step-body">
+          <label for="step-newterm">Open a new terminal window</label>
+          <p>This matters: your settings from the installer only apply to <em>new</em> windows. If you add to-dos in the window you installed from, they can be saved to the wrong folder.</p>
+          <div class="cmd">
+            <pre>notes -h</pre>
+            <button class="copy" type="button" data-copy="notes -h">Copy</button>
+          </div>
+          <p class="check"><span>Check</span> In the new window, <code>notes -h</code> prints the help. If it says <code>command not found</code>, run the line below, then open another new window:</p>
+          <div class="cmd">
+            <pre>echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc</pre>
+            <button class="copy" type="button" data-copy="echo 'export PATH=&quot;$HOME/.local/bin:$PATH&quot;' &gt;&gt; ~/.zshrc">Copy</button>
+          </div>
         </div>
       </li>
 
@@ -570,22 +687,25 @@ cd toolbox</pre>
           <label for="step-todo">Add your first to-dos</label>
           <div class="cmd">
             <pre>notes todo "buy milk" "call mom"
-notes todo "reply to client email" --work</pre>
-            <button class="copy" type="button" data-copy='notes todo "buy milk" "call mom"&#10;notes todo "reply to client email" --work'>Copy</button>
+notes todo "reply to client email" --work
+notes todos</pre>
+            <button class="copy" type="button" data-copy='notes todo "buy milk" "call mom"&#10;notes todo "reply to client email" --work&#10;notes todos'>Copy</button>
           </div>
-          <p class="note">Quote each item. <code>notes todo buy milk</code> would add two items, "buy" and "milk".</p>
+          <p class="note">Quote each item. <code>notes todo buy milk</code> would add two items, "buy" and "milk". <code>--work</code> files an item under Work.</p>
+          <p class="check"><span>Check</span> <code>notes todos</code> lists all three items, grouped under Work and Personal.</p>
         </div>
       </li>
 
       <li class="step">
-        <input type="checkbox" id="step-list">
+        <input type="checkbox" id="step-today">
         <div class="step-body">
-          <label for="step-list">See everything that's open</label>
+          <label for="step-today">Open today's note</label>
           <div class="cmd">
-            <pre>notes todos</pre>
-            <button class="copy" type="button" data-copy="notes todos">Copy</button>
+            <pre>notes today</pre>
+            <button class="copy" type="button" data-copy="notes today">Copy</button>
           </div>
-          <p class="note">This collects open items from every note, grouped by Work and Personal. Add <code>--work</code> or <code>--personal</code> to filter.</p>
+          <p>This opens today's note in your editor: the same to-dos, plus room for anything else you want to write down.</p>
+          <p class="note"><b>In nano</b> (the default editor), save with <kbd>Ctrl</kbd>+<kbd>O</kbd>, press <kbd>Enter</kbd>, then quit with <kbd>Ctrl</kbd>+<kbd>X</kbd>. Pressing <kbd>Ctrl</kbd>+<kbd>X</kbd> first asks whether to save, and answering no throws your changes away. Prefer another editor? <code>notes editor "code -w"</code> for VS Code, or <code>notes editor vim</code>.</p>
         </div>
       </li>
 
@@ -598,7 +718,8 @@ notes todo "reply to client email" --work</pre>
 notes check          <span class="c"># interactive checklist</span></pre>
             <button class="copy" type="button" data-copy="notes done milk">Copy</button>
           </div>
-          <p class="note">Checked off the wrong one? <code>notes undone milk</code> reopens it.</p>
+          <p class="note">In <code>notes check</code>, use the arrow keys to move, Space to tick, and <kbd>q</kbd> to quit. Checked off the wrong one? <code>notes undone milk</code> reopens it.</p>
+          <p class="check"><span>Check</span> <code>notes todos</code> no longer lists "buy milk".</p>
         </div>
       </li>
 
@@ -610,22 +731,51 @@ notes check          <span class="c"># interactive checklist</span></pre>
             <pre>standup</pre>
             <button class="copy" type="button" data-copy="standup">Copy</button>
           </div>
-          <p class="note">This shows what you checked off last time and everything still open. It gets useful from your second day, once there's a yesterday to report. <a href="#standup">How it works</a></p>
+          <p class="note">On day one there's no yesterday yet, so you'll only see what's open. From tomorrow, it also lists what you checked off today. <a href="#standup">How it works</a></p>
+          <p class="check"><span>Check</span> On a weekday, it starts with <code>Standup — </code> and today's date. On weekends, it just lists your open to-dos.</p>
         </div>
       </li>
 
       <li class="step">
         <input type="checkbox" id="step-ai">
         <div class="step-body">
-          <label for="step-ai">Let Claude sort the list</label>
+          <label for="step-ai">Let Claude sort the list <span class="tag">optional</span></label>
+          <p>This needs <a href="https://claude.com/claude-code">Claude Code</a> and a Claude Pro or Max plan. Install Claude Code by following the steps on its site, then run <code>claude</code> once and log in with your Claude account. After that:</p>
           <div class="cmd">
-            <pre>notes todos --ai</pre>
-            <button class="copy" type="button" data-copy="notes todos --ai">Copy</button>
+            <pre>notes ai             <span class="c"># check the login and limits</span>
+notes todos --ai     <span class="c"># sort your to-dos</span></pre>
+            <button class="copy" type="button" data-copy="notes ai&#10;notes todos --ai">Copy</button>
           </div>
-          <p class="note">Needs <a href="https://claude.com/claude-code">Claude Code</a> installed and logged in. The first run takes a few seconds, and after that it's instant. More on this below.</p>
+          <p class="check"><span>Check</span> Next to Login, <code>notes ai</code> shows <code>Claude subscription ✓</code>. The first sort takes a few seconds, and after that it's instant. <a href="#ai-title">More about AI sorting</a></p>
         </div>
       </li>
     </ol>
+
+    <aside class="trouble" aria-labelledby="trouble-title">
+      <h3 id="trouble-title">If something goes wrong</h3>
+      <dl>
+        <div>
+          <dt><code>notes: command not found</code></dt>
+          <dd>Your terminal can't find <code>~/.local/bin</code>. Run the PATH line from step 4, then open a new window.</dd>
+        </div>
+        <div>
+          <dt>My to-dos disappeared</dt>
+          <dd>They were probably added in the window you installed from, before iCloud sync took effect, so they're in the download folder. Move them over in a new window: <code>mv -n ~/Developer/toolbox/tools/notes/notes/*.md "${NOTES_DIR:?}"/</code> (it stops with an error instead of moving anything if sync isn't set up)</dd>
+        </div>
+        <div>
+          <dt>I lost what I typed in nano</dt>
+          <dd>Save with <kbd>Ctrl</kbd>+<kbd>O</kbd> and <kbd>Enter</kbd> before quitting with <kbd>Ctrl</kbd>+<kbd>X</kbd>, or switch to an editor you know with <code>notes editor</code>.</dd>
+        </div>
+        <div>
+          <dt>"Couldn't categorize with AI"</dt>
+          <dd>The message says why: Claude Code isn't installed or logged in, or a daily or monthly limit is reached. <code>notes ai</code> shows the details. The regular list still works.</dd>
+        </div>
+        <div>
+          <dt>Getting updates</dt>
+          <dd>Run <code>git pull</code> inside the toolbox folder, e.g. <code>cd ~/Developer/toolbox &amp;&amp; git pull</code>. The new version works right away, with no reinstall.</dd>
+        </div>
+      </dl>
+    </aside>
   </section>
 
   <!-- how a day works -->
