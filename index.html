@@ -18,10 +18,59 @@
   img { max-width: 100%; }
   [hidden] { display: none !important; }
 </style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,700;1,400&family=Martian+Mono:wdth,wght@75..112.5,300..700&display=swap">
 <style>
+  /* Fonts are served from this site (no requests to Google). Both are SIL Open Font License 1.1, see fonts/. */
+  @font-face {
+    font-family: 'Atkinson Hyperlegible Next';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url(fonts/atkinson-hyperlegible-next-latin-ext.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Atkinson Hyperlegible Next';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url(fonts/atkinson-hyperlegible-next-latin.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Atkinson Hyperlegible Next';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url(fonts/atkinson-hyperlegible-next-italic-latin-ext.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Atkinson Hyperlegible Next';
+    font-style: italic;
+    font-weight: 400;
+    font-display: swap;
+    src: url(fonts/atkinson-hyperlegible-next-italic-latin.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Martian Mono';
+    font-style: normal;
+    font-weight: 300 700;
+    font-stretch: 75% 112.5%;
+    font-display: swap;
+    src: url(fonts/martian-mono-latin-ext.woff2) format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+  @font-face {
+    font-family: 'Martian Mono';
+    font-style: normal;
+    font-weight: 300 700;
+    font-stretch: 75% 112.5%;
+    font-display: swap;
+    src: url(fonts/martian-mono-latin.woff2) format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+
   :root {
     --paper: #F3F5F8;
     --sheet: #FFFFFF;
@@ -612,7 +661,7 @@ tags: [daily]
 python3 --version</pre>
             <button class="copy" type="button" data-copy="git --version&#10;python3 --version">Copy</button>
           </div>
-          <p class="note">Both come with macOS's developer tools. On a fresh Mac, either command may open a dialog offering to install them: click Install, wait for it to finish, then run the commands again. You'll also need access to the private <code>toolbox</code> repo on GitHub. Ask Tobias for an invite.</p>
+          <p class="note">Both come with macOS's developer tools. On a fresh Mac, either command may open a dialog offering to install them: click Install, wait for it to finish, then run the commands again. You'll also need access to the private <code>toolbox</code> repo on GitHub. Ask Tobias (<a href="https://github.com/tobiasdossinger">@tobiasdossinger</a> on GitHub) for an invite.</p>
           <p class="check"><span>Check</span> Both commands print a version number, e.g. <code>Python 3.9.6</code>.</p>
         </div>
       </li>
@@ -631,7 +680,7 @@ cd toolbox</pre>
           <ul class="alts">
             <li>If you use the GitHub CLI: <code>gh repo clone tobiasdossinger/toolbox</code></li>
             <li>If you have an SSH key on GitHub: <code>git clone git@github.com:tobiasdossinger/toolbox.git</code></li>
-            <li>If you have no GitHub account: ask Tobias for a read-only download link. The toolbox README explains how he creates one.</li>
+            <li>If you have no GitHub account: ask Tobias (<a href="https://github.com/tobiasdossinger">@tobiasdossinger</a>) for a read-only download link. The toolbox README explains how that works.</li>
           </ul>
           <p class="keep"><b>Keep this folder where it is.</b> The tools run straight from it, and unless you turn on iCloud sync in the next step, your notes are stored inside it too. Moving or deleting it breaks the <code>notes</code> command.</p>
         </div>
@@ -955,7 +1004,7 @@ notes todos --ai     <span class="c"># sort your to-dos</span></pre>
   </main>
 
   <footer>
-    <span>Part of <b>toolbox</b>, a set of personal CLI tools. Full docs: <code>tools/notes/README.md</code> and <code>tools/standup/README.md</code></span>
+    <span>Part of <b>toolbox</b>, a set of personal CLI tools by <a href="https://github.com/tobiasdossinger">@tobiasdossinger</a>. Full docs: <code>tools/notes/README.md</code> and <code>tools/standup/README.md</code></span>
     <span>Your notes are plain text and stay on your machine.</span>
   </footer>
 </div>
