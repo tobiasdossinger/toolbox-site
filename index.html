@@ -62,7 +62,7 @@
       --rule: #263142;
       --pen: #8FA2FF;
       --pen-soft: #1C2644;
-      --marker: #E9C938;
+      --marker: #6B5A12;
       --marker-ink: #10151D;
       --urgent: #FF7A70;
       --normal: #E5B454;
@@ -81,7 +81,7 @@
     --rule: #263142;
     --pen: #8FA2FF;
     --pen-soft: #1C2644;
-    --marker: #E9C938;
+    --marker: #6B5A12;
     --marker-ink: #10151D;
     --urgent: #FF7A70;
     --normal: #E5B454;
@@ -107,6 +107,7 @@
     display: grid;
     gap: clamp(56px, 9vw, 104px);
   }
+  main { display: grid; gap: clamp(56px, 9vw, 104px); }
   a { color: var(--pen); text-underline-offset: 3px; }
   a:hover { text-decoration-thickness: 2px; }
   :focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
@@ -198,7 +199,7 @@
     line-height: 1.6;
   }
   .cmd pre .p { color: var(--faint); user-select: none; }
-  .cmd pre .c { color: var(--faint); }
+  .cmd pre .c { color: var(--muted); }
   .copy {
     font-family: var(--mono);
     font-variation-settings: "wdth" 85;
@@ -212,6 +213,7 @@
     flex: none;
   }
   .copy:hover { background: var(--pen-soft); }
+  .copy:focus-visible { outline-offset: -3px; border-radius: 0 7px 7px 0; }
   .fine { margin-top: 12px; font-size: var(--step--1); color: var(--muted); }
 
   /* the note file preview */
@@ -243,9 +245,9 @@
     line-height: 1.75;
     color: var(--ink);
   }
-  .file .fm { color: var(--faint); }
+  .file .fm { color: var(--muted); }
   .file .h { color: var(--pen); font-weight: 600; }
-  .file .x { color: var(--faint); text-decoration: line-through; text-decoration-color: var(--faint); }
+  .file .x { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--muted); }
   .file .mv { color: var(--faint); }
   .file-cap { font-size: var(--step--1); color: var(--muted); padding: 0 16px 14px; margin: 0; }
 
@@ -265,6 +267,7 @@
   }
   h2::before {
     content: "##";
+    content: "##" / "";
     color: var(--faint);
     font-weight: 300;
     margin-right: 0.5em;
@@ -364,9 +367,9 @@
   .legend li { display: flex; gap: 10px; align-items: baseline; }
   .legend .b1 { color: var(--urgent); }
   .legend .b2 { color: var(--normal); }
-  .legend .b3 { color: var(--faint); }
+  .legend .b3 { color: var(--muted); }
   .legend .t1 { font-weight: 700; }
-  .legend .t3 { color: var(--faint); }
+  .legend .t3 { color: var(--muted); }
   .legend small { font-family: var(--sans); color: var(--muted); font-size: 0.85rem; }
   .term {
     background: var(--term);
@@ -378,6 +381,20 @@
   .term-bar { display: flex; align-items: center; gap: 7px; padding: 10px 14px; }
   .term-bar i { width: 10px; height: 10px; border-radius: 50%; background: #2A3342; }
   .term-bar span { margin-left: 8px; font-family: var(--mono); font-variation-settings: "wdth" 80; font-size: 0.7rem; color: #7D889A; }
+  .gif-toggle {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-variation-settings: "wdth" 85;
+    font-size: 0.72rem;
+    color: #D8DEE8;
+    background: #1E2633;
+    border: 1px solid #2E3848;
+    border-radius: 5px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .gif-toggle:hover { background: #2A3342; }
+  .gif-toggle:focus-visible { outline: 2px solid #8FA2FF; outline-offset: 2px; }
   .term img { display: block; width: 100%; height: auto; }
   .term figcaption { font-size: var(--step--1); color: #9AA6B8; padding: 10px 14px 12px; border-top: 1px solid #1E2633; }
 
@@ -451,10 +468,11 @@
     <span>Python 3 · no dependencies · plain Markdown</span>
   </header>
 
+  <main>
   <!-- hero -->
   <div class="hero">
     <div>
-      <h1 id="hero-line"><span class="dash">-</span> <button class="tick" id="hero-tick" type="button" aria-pressed="false" aria-label="Check off this line">[ ]</button> <span class="said">Write it down. Find it later.</span></h1>
+      <h1 id="hero-line" aria-labelledby="hero-said"><span class="dash" aria-hidden="true">-</span> <button class="tick" id="hero-tick" type="button" aria-pressed="false" aria-label="Check off this line">[ ]</button> <span class="said" id="hero-said">Write it down. Find it later.</span></h1>
       <p class="lede"><code>notes</code> is a small terminal tool for daily notes and to-dos. Every note is a <em>plain Markdown file you own</em>. Open to-dos follow you from day to day, and when the list gets long, Claude can sort it for you.</p>
       <div class="cmd">
         <pre><span class="p">$ </span>notes todo "renew passport" "call dentist"</pre>
@@ -491,14 +509,14 @@ tags: [daily]
     <div class="sec-head">
       <h2 id="setup-title">Get set up</h2>
       <p>Six steps, about five minutes. Tick each one off as you go; your progress is saved in this browser.</p>
-      <div class="progress" aria-live="polite">
+      <div class="progress">
         <div class="bar" aria-hidden="true"><i id="bar-fill"></i></div>
-        <span id="progress-text">0 of 6 done</span>
+        <span id="progress-text" role="status">0 of 6 done</span>
         <button class="reset" id="reset" type="button" hidden>Start over</button>
       </div>
     </div>
 
-    <ol class="steps">
+    <ol class="steps" role="list">
       <li class="step">
         <input type="checkbox" id="step-clone">
         <div class="step-body">
@@ -611,19 +629,19 @@ notes check          <span class="c"># interactive checklist</span></pre>
     <div class="ai">
       <div class="ai-copy">
         <p>Add <code>--ai</code> to <code>notes todos</code> or <code>notes check</code>. Claude files each open item under a topic like Finance, Health or Meetings, rates how urgent it is, and puts the most urgent items at the top of each group.</p>
-        <ul class="legend" aria-label="Priority legend">
-          <li><span class="b1">☐</span><span class="t1">file tax return, deadline next week</span><small>urgent</small></li>
-          <li><span class="b2">☐</span><span>buy groceries for the weekend</span><small>normal</small></li>
-          <li><span class="b3">☐</span><span class="t3">someday: learn Spanish</span><small>low</small></li>
+        <ul class="legend" role="list" aria-label="Priority legend">
+          <li><span class="b1" aria-hidden="true">☐</span><span class="t1">file tax return, deadline next week</span><small>urgent</small></li>
+          <li><span class="b2" aria-hidden="true">☐</span><span>buy groceries for the weekend</span><small>normal</small></li>
+          <li><span class="b3" aria-hidden="true">☐</span><span class="t3">someday: learn Spanish</span><small>low</small></li>
         </ul>
         <p><b>Your files never change.</b> Sorting only affects what you see, so <code>done</code>, carry-forward and everything else work exactly as before.</p>
         <p>Results are saved per item, so only new to-dos trigger a call. Want a fresh sort? Run <code>notes todos --ai --refresh</code>. There's also Markdown output for sharing: <code>notes todos --ai --md</code>.</p>
       </div>
       <figure class="term" style="margin:0">
-        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>notes · demo notebook</span></div>
+        <div class="term-bar"><i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i><span aria-hidden="true">notes · demo notebook</span><button class="gif-toggle" id="gif-toggle" type="button" aria-pressed="false">Pause</button></div>
         <picture>
           <source srcset="notes-ai-demo.png" media="(prefers-reduced-motion: reduce)">
-          <img src="notes-ai-demo.gif" width="983" height="1277" alt="Terminal recording: notes todos lists 30 to-dos grouped only by Work and Personal; notes todos --ai regroups them into Finance, Health, Household, Meetings, Technical, Travel, Planning and Learning with urgent items first; a new to-do is categorized with one small call; notes check --ai shows the grouped checklist; notes ai shows the usage report.">
+          <img id="demo-gif" src="notes-ai-demo.gif" width="983" height="1277" alt="Terminal recording: notes todos lists 30 to-dos grouped only by Work and Personal; notes todos --ai regroups them into Finance, Health, Household, Meetings, Technical, Travel, Planning and Learning with urgent items first; a new to-do is categorized with one small call; notes check --ai shows the grouped checklist; notes ai shows the usage report.">
         </picture>
         <figcaption>A real recording on a demo notebook with 30 to-dos. The wait for Claude is shortened to about a second.</figcaption>
       </figure>
@@ -643,7 +661,7 @@ notes check          <span class="c"># interactive checklist</span></pre>
         <li><b>Every call is logged.</b> Run <code>notes ai</code> to see today's calls, this month's estimated usage and the latest calls. A sort of about 30 to-dos is estimated at roughly $0.03 at API prices, which counts toward your plan's usage limits rather than being charged.</li>
       </ul>
       <div>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="AI sorting limits">
           <table>
             <thead><tr><th scope="col">Setting</th><th scope="col">Default</th><th scope="col">What it limits</th></tr></thead>
             <tbody>
@@ -701,6 +719,7 @@ notes check          <span class="c"># interactive checklist</span></pre>
       </div>
     </div>
   </section>
+  </main>
 
   <footer>
     <span>Part of <b>toolbox</b>, a set of personal CLI tools. Full docs: <code>tools/notes/README.md</code></span>
@@ -753,6 +772,22 @@ notes check          <span class="c"># interactive checklist</span></pre>
     tick.setAttribute("aria-pressed", on ? "true" : "false");
   });
 
+  // demo recording: pause/play (paused from the start with reduced motion)
+  var gif = document.getElementById("demo-gif");
+  var gifBtn = document.getElementById("gif-toggle");
+  var source = gif.parentNode.querySelector("source");
+  if (source) source.parentNode.removeChild(source);
+  function setPlaying(on) {
+    gif.src = on ? "notes-ai-demo.gif" : "notes-ai-demo.png";
+    gifBtn.textContent = on ? "Pause" : "Play";
+    gifBtn.setAttribute("aria-pressed", on ? "false" : "true");
+    gifBtn.setAttribute("aria-label", on ? "Pause the recording" : "Play the recording");
+  }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var playing = !reduce;
+  setPlaying(playing);
+  gifBtn.addEventListener("click", function () { playing = !playing; setPlaying(playing); });
+
   // copy buttons
   var toast = document.getElementById("toast");
   var timer;
@@ -771,6 +806,7 @@ notes check          <span class="c"># interactive checklist</span></pre>
     sel.addRange(range);
   }
   document.querySelectorAll(".copy").forEach(function (btn) {
+    btn.setAttribute("aria-label", "Copy command: " + btn.getAttribute("data-copy").split("\n")[0]);
     btn.addEventListener("click", function () {
       var value = btn.getAttribute("data-copy");
       var p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(value) : Promise.reject();
